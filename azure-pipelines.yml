@@ -106,6 +106,12 @@ stages:
           echo "Building with Maven Wrapper..."
           echo "Working directory: $(pwd)"
           
+          # Configurar HOME (necessário para mvnw)
+          if [ -z "$HOME" ]; then
+            export HOME=/root
+            echo "HOME set to: $HOME"
+          fi
+          
           # Configurar JAVA_HOME
           export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
           echo "JAVA_HOME: $JAVA_HOME"
