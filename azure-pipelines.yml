@@ -117,7 +117,8 @@ stages:
     # Publish build artifact
     - task: PublishBuildArtifacts@1
       displayName: '📦 Publish Artifact'
-      condition: and(succeeded(), exists('target'))
+      condition: succeeded()
+      continueOnError: true
       inputs:
         PathtoPublish: '$(System.DefaultWorkingDirectory)/target'
         ArtifactName: 'target'
