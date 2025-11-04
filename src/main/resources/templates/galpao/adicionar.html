@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Adicionar Galpão</title>
+    <link rel="stylesheet" th:href="@{/galpao/adicionar.css}"/>
+</head>
+<body>
+<h2>Adicionar Galpão</h2>
+
+<div th:if="${mensagemErro}" class="mensagem-erro">
+    <p th:text="${mensagemErro}"></p>
+</div>
+
+<form th:action="@{/galpoes-view/adicionar}" th:object="${galpaoDTO}" method="post">
+    <label>Nome:</label>
+    <input type="text" th:field="*{nome}" required>
+    <p th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="mensagem-erro"></p>
+
+    <label>Endereço:</label>
+    <input type="text" th:field="*{endereco}" required>
+    <p th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}" class="mensagem-erro"></p>
+
+    <label>Capacidade:</label>
+    <input type="number" th:field="*{capacidade}" min="1"  required>
+    <p th:if="${#fields.hasErrors('capacidade')}" th:errors="*{capacidade}" class="mensagem-erro"></p>
+
+    <button type="submit">Salvar</button>
+</form>
+
+<a th:href="@{/galpoes-view/todos}">Voltar para a lista</a>
+</body>
+</html>

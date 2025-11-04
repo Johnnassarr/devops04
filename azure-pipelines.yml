@@ -1,0 +1,362 @@
+# =============================================================================
+# Azure DevOps Pipeline - Mottu API
+# =============================================================================
+# Pipeline completo com CI/CD
+# - Stage 1 (CI): Build, Test e Push para ACR
+# - Stage 2 (CD): Deploy no Azure Container Instances
+# =============================================================================
+
+trigger:
+  branches:
+    include:
+    - main
+    - develop
+  paths:
+    exclude:
+    - README.md
+    - SETUP-GUIDE.md
+    - '*.sh'
+
+pr:
+  branches:
+    include:
+    - main
+    - develop
+
+variables:
+  # Build variables
+  mavenVersion: '3.8.x'
+  jdkVersion: '17'
+  
+  # Azure variables (configure in Pipeline Variables or Variable Groups)
+  azureRG: 'rg-challenge3-rm556221'
+  acrName: 'acrchallenge3rm556221'
+  acrLoginServer: 'acrchallenge3rm556221.azurecr.io'
+  location: 'eastus'
+  
+  # Image variables
+  imageName: 'mottu-api'
+  imageTag: '$(Build.BuildId)'
+  
+  # Database variables (configure as secret variables)
+  # dbHost: '<configured-in-variables>'
+  # dbPort: '5432'
+  # dbName: 'mottu-api'
+  # dbUser: 'postgres'
+  # dbPassword: '<configured-as-secret>'
+
+stages:
+# =============================================================================
+# STAGE 1: BUILD & PUSH (CI)
+# =============================================================================
+- stage: Build
+  displayName: 'Build and Push to ACR'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Application'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    # Checkout code
+    - checkout: self
+      displayName: 'Checkout Repository'
+      clean: true
+    
+    # Setup Java
+    - task: JavaToolInstaller@0
+      displayName: 'Setup Java $(jdkVersion)'
+      inputs:
+        versionSpec: '$(jdkVersion)'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
+    
+    # Setup Maven
+    - task: Maven@3
+      displayName: 'Maven: Clean and Build'
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'clean package'
+        options: '-DskipTests=false'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '$(jdkVersion)'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+    
+    # Publish build artifact
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: target'
+      inputs:
+        PathtoPublish: '$(System.DefaultWorkingDirectory)/target'
+        ArtifactName: 'target'
+        publishLocation: 'Container'
+    
+    # Azure CLI: Login
+    - task: AzureCLI@2
+      displayName: 'Azure Login'
+      inputs:
+        azureSubscription: '$(azureServiceConnection)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Logged in to Azure"
+          az account show
+    
+    # Docker: Build Image
+    - task: Docker@2
+      displayName: 'Docker: Build Image'
+      inputs:
+        command: 'build'
+        repository: '$(imageName)'
+        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        tags: |
+          $(imageTag)
+          latest
+    
+    # ACR: Login
+    - task: AzureCLI@2
+      displayName: 'ACR: Login'
+      inputs:
+        azureSubscription: '$(azureServiceConnection)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az acr login --name $(acrName)
+    
+    # Docker: Tag and Push to ACR
+    - task: Docker@2
+      displayName: 'Docker: Tag for ACR'
+      inputs:
+        command: 'tag'
+        arguments: '$(imageName):$(imageTag) $(acrLoginServer)/$(imageName):$(imageTag)'
+    
+    - task: Docker@2
+      displayName: 'Docker: Tag Latest for ACR'
+      inputs:
+        command: 'tag'
+        arguments: '$(imageName):latest $(acrLoginServer)/$(imageName):latest'
+    
+    - task: AzureCLI@2
+      displayName: 'ACR: Push Images'
+      inputs:
+        azureSubscription: '$(azureServiceConnection)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Pushing images to ACR..."
+          docker push $(acrLoginServer)/$(imageName):$(imageTag)
+          docker push $(acrLoginServer)/$(imageName):latest
+          
+          echo "Verifying images in ACR..."
+          az acr repository list --name $(acrName) --output table
+          az acr repository show-tags --name $(acrName) --repository $(imageName) --output table
+    
+    # Publish deployment manifest
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Deployment Manifest'
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
+
+# =============================================================================
+# STAGE 2: DEPLOY (CD)
+# =============================================================================
+- stage: Deploy
+  displayName: 'Deploy to Azure'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: DeployJob
+    displayName: 'Deploy to ACI'
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Download artifacts
+          - download: current
+            artifact: manifests
+            displayName: 'Download Manifests'
+          
+          # Get ACR credentials
+          - task: AzureCLI@2
+            displayName: 'Get ACR Credentials'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                ACR_PASSWORD=$(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv)
+                echo "##vso[task.setvariable variable=acrPassword;issecret=true]$ACR_PASSWORD"
+          
+          # Create deployment manifest
+          - task: AzureCLI@2
+            displayName: 'Create ACI Deployment Manifest'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                cat > aci-deployment.yaml << EOF
+                apiVersion: 2021-09-01
+                location: $(location)
+                name: mottu-api-aci
+                properties:
+                  containers:
+                  - name: mottu-api
+                    properties:
+                      image: $(acrLoginServer)/$(imageName):$(imageTag)
+                      resources:
+                        requests:
+                          cpu: 1
+                          memoryInGb: 1.5
+                      ports:
+                      - port: 8080
+                        protocol: TCP
+                      environmentVariables:
+                      - name: SPRING_DATASOURCE_URL
+                        value: jdbc:postgresql://$(dbHost):$(dbPort)/$(dbName)
+                      - name: SPRING_DATASOURCE_USERNAME
+                        value: $(dbUser)
+                      - name: SPRING_DATASOURCE_PASSWORD
+                        secureValue: $(dbPassword)
+                      - name: JAVA_OPTS
+                        value: "-Xms512m -Xmx1024m"
+                      - name: BUILD_ID
+                        value: "$(Build.BuildId)"
+                      - name: BUILD_NUMBER
+                        value: "$(Build.BuildNumber)"
+                  osType: Linux
+                  restartPolicy: Always
+                  ipAddress:
+                    type: Public
+                    ports:
+                    - protocol: TCP
+                      port: 8080
+                  imageRegistryCredentials:
+                  - server: $(acrLoginServer)
+                    username: $(acrName)
+                    password: $(acrPassword)
+                tags:
+                  environment: production
+                  buildId: "$(Build.BuildId)"
+                  deployed: "$(Build.SourceVersion)"
+                type: Microsoft.ContainerInstance/containerGroups
+                EOF
+                
+                echo "Deployment manifest created:"
+                cat aci-deployment.yaml
+          
+          # Remove existing container (if any)
+          - task: AzureCLI@2
+            displayName: 'Remove Existing Container'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                if az container show --resource-group $(azureRG) --name mottu-api-aci &> /dev/null; then
+                  echo "Removing existing container..."
+                  az container delete \
+                    --resource-group $(azureRG) \
+                    --name mottu-api-aci \
+                    --yes
+                  echo "Waiting for deletion to complete..."
+                  sleep 15
+                else
+                  echo "No existing container found"
+                fi
+          
+          # Deploy to ACI
+          - task: AzureCLI@2
+            displayName: 'Deploy to ACI'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Deploying application to ACI..."
+                az container create \
+                  --resource-group $(azureRG) \
+                  --file aci-deployment.yaml
+                
+                echo "Deployment completed!"
+          
+          # Get deployment info
+          - task: AzureCLI@2
+            displayName: 'Get Deployment Info'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Waiting for container to start..."
+                sleep 20
+                
+                # Get container info
+                APP_IP=$(az container show \
+                  --resource-group $(azureRG) \
+                  --name mottu-api-aci \
+                  --query "ipAddress.ip" -o tsv)
+                
+                STATE=$(az container show \
+                  --resource-group $(azureRG) \
+                  --name mottu-api-aci \
+                  --query "containers[0].instanceView.currentState.state" -o tsv)
+                
+                echo "=========================================="
+                echo "DEPLOYMENT COMPLETED"
+                echo "=========================================="
+                echo "Container: mottu-api-aci"
+                echo "State: $STATE"
+                echo "IP Address: $APP_IP"
+                echo "Application URL: http://$APP_IP:8080"
+                echo "Build ID: $(Build.BuildId)"
+                echo "Image: $(acrLoginServer)/$(imageName):$(imageTag)"
+                echo "=========================================="
+                
+                # Set output variable
+                echo "##vso[task.setvariable variable=applicationUrl;isOutput=true]http://$APP_IP:8080"
+          
+          # Health check
+          - task: AzureCLI@2
+            displayName: 'Health Check'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                APP_IP=$(az container show \
+                  --resource-group $(azureRG) \
+                  --name mottu-api-aci \
+                  --query "ipAddress.ip" -o tsv)
+                
+                echo "Waiting for application to be ready..."
+                sleep 30
+                
+                MAX_RETRIES=10
+                RETRY_COUNT=0
+                
+                while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+                  if curl -f -s http://$APP_IP:8080/actuator/health > /dev/null 2>&1; then
+                    echo "✓ Application is healthy!"
+                    exit 0
+                  fi
+                  
+                  RETRY_COUNT=$((RETRY_COUNT + 1))
+                  echo "Health check failed. Retry $RETRY_COUNT/$MAX_RETRIES..."
+                  sleep 10
+                done
+                
+                echo "⚠ Health check did not succeed after $MAX_RETRIES attempts"
+                echo "Application might still be starting up. Check logs:"
+                echo "az container logs --resource-group $(azureRG) --name mottu-api-aci"
+                exit 0
+

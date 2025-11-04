@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Adicionar Moto</title>
+    <link rel="stylesheet" th:href="@{/moto/adicionar.css}"/>
+</head>
+<body>
+<div class="container">
+
+
+
+    <form th:action="@{/motos-view/adicionar}" th:object="${motoDTO}" method="post">
+        <h2>Adicionar Moto</h2>
+
+        <!-- Mensagem de sucesso -->
+        <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}" class="mensagem" style="color: #00ff7f;"></p>
+
+        <!-- Mensagem de erro -->
+        <p th:if="${mensagemErro}" th:text="${mensagemErro}" class="mensagem" style="color: #ff4d4d;"></p>
+
+        <div>
+            <label>Placa:</label>
+            <input type="text" th:field="*{placa}" minlength="7" maxLength="7" title="A placa deve ter 7 caracteres" required />
+        </div>
+
+        <div>
+            <label>Modelo:</label>
+            <select th:field="*{modelo}" required>
+                <option th:value="MOTTU_SPORT">Mottu Sport</option>
+                <option th:value="MOTTU_E">Mottu E</option>
+                <option th:value="MOTTU_POP">Mottu Pop</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Ano:</label>
+            <select th:field="*{ano}" required>
+                <option value="ANO_2016">2016</option>
+                <option value="ANO_2017">2017</option>
+                <option value="ANO_2018">2018</option>
+                <option value="ANO_2019">2019</option>
+                <option value="ANO_2020">2020</option>
+                <option value="ANO_2021">2021</option>
+                <option value="ANO_2022">2022</option>
+                <option value="ANO_2023">2023</option>
+                <option value="ANO_2024">2024</option>
+                <option value="ANO_2025">2025</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Status:</label>
+            <select th:field="*{status}">
+                <option th:value="DISPONIVEL">Disponível</option>
+                <option th:value="TRANSITO">Em Trânsito</option>
+                <option th:value="MANUTENCAO">Em Manutenção</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Data de Saída:</label>
+            <input type="datetime-local" th:field="*{dataSaida}" />
+            <p class="note">Clique no icone de caléndario para selecionar</p>
+        </div>
+
+        <div>
+            <label>Data de Retorno:</label>
+            <input type="datetime-local" th:field="*{dataRetorno}" />
+            <p class="note">Clique no icone de caléndario para selecionar</p>
+        </div>
+
+        <div>
+            <label>Galpão:</label>
+            <select th:field="*{galpaoId}">
+                <option th:each="g : ${galpoes}" th:value="${g.id}" th:text="${g.nome}"></option>
+            </select>
+        </div>
+
+        <div>
+            <label>Motoqueiro:</label>
+            <select th:field="*{motoboyId}">
+                <option value="">-- Selecione --</option>
+                <option th:each="m : ${motoqueiros}" th:value="${m.id}" th:text="${m.nomeCompleto}"></option>
+            </select>
+            <p class="note">O motoqueiro apenas deve ser selecionado se a moto estiver em trânsito</p>
+        </div>
+
+        <div class="full-width">
+            <label>Em Manutenção:</label>
+            <input type="checkbox" th:field="*{emManutencao}" />
+        </div>
+
+        <button type="submit">Salvar</button>
+        <a th:href="@{/motos-view/todos}">Voltar para a lista</a>
+    </form>
+</div>
+</body>
+</html>

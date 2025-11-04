@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Mottu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/pages/dashboard.css}"/>
+</head>
+<body>
+
+<th:block th:replace="fragments/header :: header"></th:block>
+
+<main class="container">
+
+    <div class="menu-item">
+        <h3>Galpão</h3>
+        <a th:href="@{/galpoes-view/todos}">Ver Todos</a>
+        <a th:href="@{/galpoes-view/adicionar}">Adicionar</a>
+    </div>
+
+    <div class="menu-item">
+        <h3>Manutenção</h3>
+        <a th:href="@{/manutencoes-view/todos}">Ver Todos</a>
+        <a th:href="@{/manutencoes-view/adicionar}">Adicionar</a>
+    </div>
+
+    <div class="menu-item">
+        <h3>Moto</h3>
+        <a th:href="@{/motos-view/todos}">Ver Todas</a>
+        <a th:href="@{/motos-view/adicionar}">Adicionar</a>
+    </div>
+
+    <div class="menu-item">
+        <h3>Motoqueiro</h3>
+        <a th:href="@{/motoqueiros-view/todos}">Ver Todos</a>
+        <a th:href="@{/motoqueiros-view/adicionar}">Adicionar</a>
+    </div>
+
+</main>
+
+<th:block th:replace="fragments/footer :: footer"></th:block>
+
+</body>
+</html>

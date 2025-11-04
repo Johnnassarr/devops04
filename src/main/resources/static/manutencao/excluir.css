@@ -1,0 +1,7 @@
+body { font-family: Arial; background: #121212; color: #fff; padding: 20px; }
+        h2 { color: #ff5555; }
+        button { margin-top: 15px; padding: 8px 16px; background: #ff5555; color: #fff; border-radius: 5px; cursor: pointer; font-weight: bold; border: none; }
+        button:hover { background: #cc4444; }
+        a { display: inline-block; margin-top: 15px; color: #00ff7f; text-decoration: none; font-weight: bold; }
+        a:hover { color: #00cc66; }
+        .mensagem { color: #ff5555; font-weight: bold; margin-top: 15px; }

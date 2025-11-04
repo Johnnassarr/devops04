@@ -1,0 +1,32 @@
+.mottu-header {
+            background-color: #000;
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mottu-header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-info span { font-weight: 600; font-size: 14px; }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .logout-btn:hover {
+            background: #fff;
+            color: #000;
+        }

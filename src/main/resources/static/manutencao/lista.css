@@ -1,0 +1,16 @@
+body { font-family: Arial; background: #121212; color: #fff; margin: 0; padding: 20px; }
+        h2 { color: #00ff7f; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #00ff7f; padding: 10px; text-align: left; }
+        th { background-color: #00ff7f; color: #000; }
+        a { color: #00ff7f; text-decoration: none; margin-right: 10px; font-weight: bold; }
+        a:hover { color: #00cc66; }
+        .mensagem { margin: 15px 0; font-weight: bold; color: #00ff7f; }
+        .btn-adicionar { display: inline-block; margin-top: 15px; padding: 8px 16px; background: #00ff7f; color: #000; font-weight: bold; text-decoration: none; border-radius: 5px; }
+        .btn-adicionar:hover { background: #00cc66; }
+        .btn-voltar {
+            background-color: #00ff7f;
+            padding: 5px;
+            font-weight: bold;
+            color: #fff;
+        }

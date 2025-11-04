@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Excluir Galpão</title>
+    <link rel="stylesheet" th:href="@{/galpao/excluir.css}"/>
+</head>
+<body>
+<h2>Excluir Galpão</h2>
+
+<div th:if="${mensagemErro}" class="mensagem-erro">
+    <p th:text="${mensagemErro}"></p>
+</div>
+
+<div th:if="${mensagemSucesso}" class="mensagem-sucesso">
+    <p th:text="${mensagemSucesso}"></p>
+</div>
+
+<p>Tem certeza que deseja excluir o galpão <strong th:text="${galpao.nome}"></strong>?</p>
+
+<form th:action="@{'/galpoes-view/excluir/' + ${galpao.id}}" method="post">
+    <button type="submit" th:disabled="${mensagemErro != null}">Confirmar</button>
+</form>
+
+<a th:href="@{/galpoes-view/todos}">Cancelar</a>
+</body>
+</html>

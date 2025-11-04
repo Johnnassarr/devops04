@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Adicionar Manutenção</title>
+    <link rel="stylesheet" th:href="@{/manutencao/adicionar.css}"/>
+</head>
+<body>
+<h2>Adicionar Manutenção</h2>
+
+<!-- Mensagem de erro -->
+<div th:if="${mensagemErro}" class="mensagem">
+    <p th:text="${mensagemErro}"></p>
+</div>
+
+<!-- Mensagem de validação -->
+<p th:if="${mensagem}" th:text="${mensagem}" class="mensagem"></p>
+
+<form th:action="@{/manutencoes-view/adicionar}" th:object="${manutencaoDTO}" method="post">
+    <label>Descrição:</label>
+    <input type="text" th:field="*{descricao}" required th:disabled="${mensagemErro != null}" />
+
+    <label>Prioridade:</label>
+    <select th:field="*{prioridadeManutencao}" th:disabled="${mensagemErro != null}">
+        <option th:value="ALTA">Alta</option>
+        <option th:value="MEDIA">Média</option>
+        <option th:value="BAIXA">Baixa</option>
+    </select>
+
+    <label>Data de Abertura:</label>
+    <input type="datetime-local" th:field="*{dataAbertura}" required th:disabled="${mensagemErro != null}" />
+
+    <label>Data de Fechamento:</label>
+    <input type="datetime-local" th:field="*{dataFechamento}" th:disabled="${mensagemErro != null}" />
+
+    <label>Em andamento:</label>
+    <input type="checkbox" th:field="*{emAndamento}" th:disabled="${manutencaoDTO.dataFechamento != null || mensagemErro != null}" />
+
+    <label>Placa da Moto:</label>
+    <input type="text" th:field="*{placaMoto}" placeholder="Ex: ABC-1234" maxlength="7" minlength="7" title="A placa deve ter 7 caracteres" th:disabled="${mensagemErro != null}" />
+
+    <button type="submit" th:disabled="${mensagemErro != null}">Salvar</button>
+</form>
+
+<a th:href="@{/manutencoes-view/todos}">Voltar para a lista</a>
+</body>
+</html>

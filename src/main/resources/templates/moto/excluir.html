@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Excluir Moto</title>
+    <link rel="stylesheet" th:href="@{/moto/excluir.css}"/>
+</head>
+<body>
+<h2>Excluir Moto</h2>
+
+<p th:if="${mensagemErro}" th:text="${mensagemErro}" class="mensagem" style="color: #ff4d4d;"></p>
+
+<p>Tem certeza que deseja excluir a moto <strong th:text="${moto.placa}"></strong>?</p>
+
+<form th:action="@{'/motos-view/excluir/' + ${moto.id}}" method="post">
+    <button type="submit">Confirmar</button>
+</form>
+
+<a th:href="@{/motos-view/todos}">Cancelar</a>
+</body>
+</html>

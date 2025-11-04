@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Motos</title>
+    <link rel="stylesheet" th:href="@{/moto/lista.css}"/>
+</head>
+<body>
+<a th:href="@{/dashboard}" class="btn-voltar">Voltar ao dashboard</a>
+<h2>Lista de Motos</h2>
+
+<p th:if="${mensagem}" th:text="${mensagem}" class="mensagem"></p>
+
+<table th:if="${motos}">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Placa</th>
+        <th>Modelo</th>
+        <th>Ano</th>
+        <th>Status</th>
+        <th>Galpão</th>
+        <th>Em Manutenção</th>
+        <th>Motoqueiro</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="m : ${motos}">
+        <td th:text="${m.id}"></td>
+        <td th:text="${m.placa}"></td>
+        <td th:text="${m.modelo}"></td>
+        <td th:text="${m.ano}"></td>
+        <td th:text="${m.status}"></td>
+        <td th:text="${m.galpao != null ? m.galpao.nome : '-'}"></td>
+        <td th:text="${m.emManutencao ? 'Sim' : 'Não'}"></td>
+        <td th:text="${m.motoboyEmUso != null ? m.motoboyEmUso.nomeCompleto + ' (ID: ' + m.motoboyEmUso.id + ')' : '-'}"></td>
+        <td>
+            <a th:href="@{'/motos-view/editar/' + ${m.id}}">Editar</a>
+            <a th:href="@{'/motos-view/excluir/' + ${m.id}}">Excluir</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<a th:href="@{/motos-view/adicionar}" class="btn-adicionar">Adicionar Nova Moto</a>
+</body>
+</html>

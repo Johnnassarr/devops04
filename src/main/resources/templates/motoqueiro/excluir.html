@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Excluir Motoqueiro</title>
+    <link rel="stylesheet" th:href="@{/motoqueiro/excluir.css}"/>
+</head>
+<body>
+<h2>Excluir Motoqueiro</h2>
+
+<div th:if="${mensagemErro}" class="mensagem-erro" th:text="${mensagemErro}"></div>
+<div th:if="${mensagemSucesso}" class="mensagem-sucesso" th:text="${mensagemSucesso}"></div>
+
+<p>Tem certeza que deseja excluir o motoqueiro <strong th:text="${motoqueiro.nomeCompleto}"></strong>?</p>
+
+<form th:action="@{/motoqueiros-view/excluir/{id}(id=${motoqueiro.id})}" method="post">
+    <button type="submit">Confirmar</button>
+</form>
+
+<a th:href="@{/motoqueiros-view/todos}">Cancelar</a>
+</body>
+</html>

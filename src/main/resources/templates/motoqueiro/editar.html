@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Motoqueiro</title>
+    <link rel="stylesheet" th:href="@{/motoqueiro/editar.css}"/>
+</head>
+<body>
+<h2>Editar Motoqueiro</h2>
+
+<div th:if="${mensagemErro}" class="mensagem mensagem-erro" th:text="${mensagemErro}"></div>
+<div th:if="${mensagemSucesso}" class="mensagem mensagem-sucesso" th:text="${mensagemSucesso}"></div>
+
+<form th:action="@{/motoqueiros-view/editar/{id}(id=${motoqueiroId})}" th:object="${motoqueiroDTO}" method="post">
+    <label>Nome Completo:</label>
+    <input type="text" th:field="*{nomeCompleto}" required>
+    <div th:if="${#fields.hasErrors('nomeCompleto')}" th:errors="*{nomeCompleto}" class="mensagem-erro"></div>
+
+    <label>CPF:</label>
+    <input type="text" th:field="*{cpf}" maxlength="11" minlength="11" required pattern="\d{11}" title="Digite apenas números (11 dígitos)">
+    <div th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}" class="mensagem-erro"></div>
+
+    <label>Telefone:</label>
+    <input type="text" th:field="*{telefone}" maxlength="13" minlength="13" required pattern="\d{13}" title="Digite apenas números (13 dígitos)">
+    <div th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}" class="mensagem-erro"></div>
+
+    <div class="ativo-content">
+        <label>Ativo:</label>
+        <input type="checkbox" th:field="*{ativo}" class="ativo-checkbox">
+    </div>
+
+    <button type="submit">Atualizar</button>
+</form>
+
+<a th:href="@{/motoqueiros-view/todos}">Voltar para a lista</a>
+</body>
+</html>

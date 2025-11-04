@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Manutenções</title>
+    <link rel="stylesheet" th:href="@{/manutencao/lista.css}"/>
+</head>
+<body>
+<a th:href="@{/dashboard}" class="btn-voltar">Voltar ao dashboard</a>
+<h2>Lista de Manutenções</h2>
+
+<p th:if="${mensagem}" th:text="${mensagem}" class="mensagem"></p>
+
+<table th:if="${manutencoes}">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Descrição</th>
+        <th>Prioridade</th>
+        <th>Em Andamento</th>
+        <th>Placa Moto</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="m : ${manutencoes}">
+        <td th:text="${m.id}"></td>
+        <td th:text="${m.descricao}"></td>
+        <td th:text="${m.prioridadeManutencao}"></td>
+        <td th:text="${m.emAndamento ? 'Sim' : 'Não'}"></td>
+        <td th:text="${m.placaMoto}"></td>
+        <td>
+            <a th:href="@{'/manutencoes-view/editar/' + ${m.id}}">Editar</a>
+            <a th:href="@{'/manutencoes-view/excluir/' + ${m.id}}">Excluir</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<a th:href="@{/manutencoes-view/adicionar}" class="btn-adicionar">Adicionar Nova Manutenção</a>
+</body>
+</html>

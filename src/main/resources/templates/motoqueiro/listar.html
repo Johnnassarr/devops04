@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Motoqueiros</title>
+    <link rel="stylesheet" th:href="@{/motoqueiro/lista.css}"/>
+</head>
+<body>
+<a th:href="@{/dashboard}" class="btn-voltar">Voltar ao dashboard</a>
+<h2>Lista de Motoqueiros</h2>
+
+<p th:if="${mensagem}" th:text="${mensagem}" class="mensagem"></p>
+
+<table th:if="${motoqueiros}">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nome Completo</th>
+        <th>CPF</th>
+        <th>Telefone</th>
+        <th>Ativo</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="g : ${motoqueiros}">
+        <td th:text="${g.id}"></td>
+        <td th:text="${g.nomeCompleto}"></td>
+        <td th:text="${g.cpf}"></td>
+        <td th:text="${g.telefone}"></td>
+        <td th:text="${g.ativo}"></td>
+        <td>
+            <a th:href="@{'/motoqueiros-view/editar/' + ${g.id}}">Editar</a>
+            <a th:href="@{'/motoqueiros-view/excluir/' + ${g.id}}">Excluir</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<a th:href="@{/motoqueiros-view/adicionar}" class="btn-adicionar">Adicionar Novo Motoqueiro</a>
+</body>
+</html>

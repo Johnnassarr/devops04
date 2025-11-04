@@ -1,0 +1,5 @@
+CREATE TABLE roles (
+    id BIGINT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE
+);
+

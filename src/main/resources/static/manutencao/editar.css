@@ -1,0 +1,10 @@
+body { font-family: Arial; background: #121212; color: #fff; padding: 20px; }
+        h2 { color: #00ff7f; }
+        form { max-width: 400px; margin-top: 20px; }
+        label { display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 8px; border-radius: 5px; border: none; }
+        button { margin-top: 15px; padding: 8px 16px; background: #00ff7f; color: #000; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #00cc66; }
+        a { display: inline-block; margin-top: 15px; color: #00ff7f; text-decoration: none; font-weight: bold; }
+        a:hover { color: #00cc66; }
+        .mensagem { color: #ff5555; font-weight: bold; margin-top: 15px; }

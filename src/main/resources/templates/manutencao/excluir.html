@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Excluir Manutenção</title>
+    <link rel="stylesheet" th:href="@{/manutencao/excluir.css}"/>
+</head>
+<body>
+<h2>Excluir Manutenção</h2>
+
+<div th:if="${mensagemErro}" class="mensagem">
+    <p th:text="${mensagemErro}"></p>
+</div>
+
+<p>Tem certeza que deseja excluir a manutenção: <strong th:text="${manutencao.descricao}"></strong>?</p>
+
+<form th:action="@{'/manutencoes-view/excluir/' + ${manutencao.id}}" method="post">
+    <button type="submit" th:disabled="${mensagemErro != null}">Excluir</button>
+</form>
+
+<a th:href="@{/manutencoes-view/todos}">Cancelar</a>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Galpões</title>
+    <link rel="stylesheet" th:href="@{/galpao/lista.css}"/>
+</head>
+<body>
+<a th:href="@{/dashboard}" class="btn-voltar">Voltar ao dashboard</a>
+<h2>Lista de Galpões</h2>
+
+<p th:if="${mensagemErro}" th:text="${mensagemErro}"
+   style="color: red; font-weight: bold; margin: 10px 0;"></p>
+
+<p th:if="${mensagem}" th:text="${mensagem}" class="mensagem"></p>
+
+<table th:if="${galpoes}">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Endereço</th>
+        <th>Capacidade</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="g : ${galpoes}">
+        <td th:text="${g.id}"></td>
+        <td th:text="${g.nome}"></td>
+        <td th:text="${g.endereco}"></td>
+        <td th:text="${g.capacidade}"></td>
+        <td>
+            <a th:href="@{'/galpoes-view/editar/' + ${g.id}}">Editar</a>
+            <a th:href="@{'/galpoes-view/excluir/' + ${g.id}}">Excluir</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<a th:href="@{/galpoes-view/adicionar}" class="btn-adicionar">Adicionar Novo Galpão</a>
+</body>
+</html>
