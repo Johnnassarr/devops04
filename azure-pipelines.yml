@@ -63,6 +63,7 @@ stages:
     displayName: 'Build Application'
     pool:
       name: self-hosted-pool
+    container: maven:3.9-eclipse-temurin-17
     
     steps:
     # Checkout code
@@ -70,35 +71,29 @@ stages:
       displayName: '📥 Checkout Repository'
       clean: true
     
-    # Setup Java (usar Java instalado no agente)
+    # Setup Java (verificar se Java está disponível no container)
     - task: Bash@3
       displayName: '☕ Verificar Java'
       inputs:
         targetType: 'inline'
         script: |
-          echo "Verificando Java..."
+          echo "Verificando Java no container..."
           java -version
+          echo "Maven version:"
+          mvn -version
           echo "JAVA_HOME: $JAVA_HOME"
     
-    # Build with Maven Wrapper (não precisa instalar Maven!)
+    # Build with Maven (container já tem Maven instalado!)
     - task: Bash@3
       displayName: '🔨 Maven: Clean and Build'
       inputs:
         targetType: 'inline'
         script: |
-          echo "Building with Maven Wrapper..."
-          
-          # Configurar HOME se não estiver definida (necessário para mvnw)
-          if [ -z "$HOME" ]; then
-            export HOME=/root
-            echo "HOME set to: $HOME"
-          fi
-          
-          # Dar permissão de execução ao Maven Wrapper
-          chmod +x mvnw
+          echo "Building with Maven..."
+          echo "Working directory: $(pwd)"
           
           # Build com Maven
-          ./mvnw clean package -DskipTests=false
+          mvn clean package -DskipTests=false
           
           echo ""
           echo "✓ Build completed!"
@@ -107,7 +102,7 @@ stages:
           # Verificar se o build gerou o JAR
           if [ -d "target" ]; then
             echo "Directory target/ exists"
-            ls -la target/*.jar || echo "No JAR files found"
+            ls -lah target/*.jar 2>/dev/null || echo "No JAR files found"
           else
             echo "ERROR: Directory target/ was not created!"
             exit 1
