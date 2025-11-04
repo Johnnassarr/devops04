@@ -64,18 +64,6 @@ stages:
     container: maven:3.9.11-eclipse-temurin-17
     
     steps:
-    # Checkout code
-    - checkout: self
-      displayName: 'Checkout Repository'
-      clean: true
-    
-    # Setup Java
-    - task: JavaToolInstaller@0
-      displayName: 'Setup Java $(jdkVersion)'
-      inputs:
-        versionSpec: '$(jdkVersion)'
-        jdkArchitectureOption: 'x64'
-        jdkSourceOption: 'PreInstalled'
     
     # Setup Maven
     - task: Maven@3
