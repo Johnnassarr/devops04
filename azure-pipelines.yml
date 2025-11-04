@@ -87,7 +87,17 @@ stages:
         targetType: 'inline'
         script: |
           echo "Building with Maven Wrapper..."
+          
+          # Configurar HOME se não estiver definida (necessário para mvnw)
+          if [ -z "$HOME" ]; then
+            export HOME=/root
+            echo "HOME set to: $HOME"
+          fi
+          
+          # Dar permissão de execução ao Maven Wrapper
           chmod +x mvnw
+          
+          # Build com Maven
           ./mvnw clean package -DskipTests=false
           
           echo ""
