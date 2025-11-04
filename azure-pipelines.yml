@@ -40,6 +40,11 @@ variables:
   imageName: 'mottu-api'
   imageTag: '$(Build.BuildId)'
   
+  # ACR Credentials (IMPORTANTE: Configure estas variáveis no Azure DevOps!)
+  # acrUsername: '<nome-do-acr>' (geralmente igual ao acrName)
+  # acrPassword: '<senha-do-acr>' (configure como SECRET)
+  # Para obter: az acr credential show --name acrchallenge3rm556221
+  
   # Database variables (Configure no Azure DevOps)
   # dbHost: '<IP-do-banco-obtido-no-setup>'
   # dbPort: '5432'
@@ -106,12 +111,26 @@ stages:
           $(imageTag)
           latest
     
-    # ACR: Login
-    - task: Docker@2
-      displayName: '🔐 ACR: Login'
+    # ACR: Login com credenciais
+    - task: PowerShell@2
+      displayName: '🔐 ACR: Docker Login'
       inputs:
-        command: 'login'
-        containerRegistry: '$(azureServiceConnection)'
+        targetType: 'inline'
+        script: |
+          Write-Host "Fazendo login no ACR: $(acrLoginServer)"
+          # Usando credenciais do ACR (configure acrUsername e acrPassword como variáveis)
+          if ($env:ACR_PASSWORD) {
+            echo $env:ACR_PASSWORD | docker login $(acrLoginServer) --username $(acrName) --password-stdin
+            Write-Host "✓ Login realizado com sucesso!"
+          } else {
+            Write-Host "⚠ ACR_PASSWORD não configurada. Configure as variáveis:"
+            Write-Host "  - acrUsername: $(acrName)"
+            Write-Host "  - acrPassword: <obtenha com: az acr credential show --name $(acrName)>"
+            Write-Host ""
+            Write-Host "Tentando continuar sem login explícito..."
+          }
+      env:
+        ACR_PASSWORD: $(acrPassword)
     
     # Docker: Tag for ACR
     - task: PowerShell@2
