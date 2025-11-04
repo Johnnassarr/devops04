@@ -70,27 +70,39 @@ stages:
       displayName: '📥 Checkout Repository'
       clean: true
     
-    # Setup Java
-    - task: JavaToolInstaller@0
-      displayName: '☕ Setup Java $(jdkVersion)'
+    # Setup Java (usar Java instalado no agente)
+    - task: PowerShell@2
+      displayName: '☕ Verificar Java'
       inputs:
-        versionSpec: '$(jdkVersion)'
-        jdkArchitectureOption: 'x64'
-        jdkSourceOption: 'PreInstalled'
+        targetType: 'inline'
+        script: |
+          Write-Host "Verificando Java..."
+          java -version
+          Write-Host "JAVA_HOME: $env:JAVA_HOME"
     
-    # Build with Maven
-    - task: Maven@3
+    # Build with Maven Wrapper (não precisa instalar Maven!)
+    - task: PowerShell@2
       displayName: '🔨 Maven: Clean and Build'
       inputs:
-        mavenPomFile: 'pom.xml'
-        goals: 'clean package'
-        options: '-DskipTests=false'
-        publishJUnitResults: true
+        targetType: 'inline'
+        script: |
+          Write-Host "Building with Maven Wrapper..."
+          .\mvnw.cmd clean package -DskipTests=false
+          
+          Write-Host ""
+          Write-Host "✓ Build completed!"
+          Write-Host "Artifact location: target\"
+    
+    # Publish test results
+    - task: PublishTestResults@2
+      displayName: '📊 Publish Test Results'
+      condition: always()
+      inputs:
+        testResultsFormat: 'JUnit'
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
-        javaHomeOption: 'JDKVersion'
-        jdkVersionOption: '$(jdkVersion)'
-        mavenVersionOption: 'Default'
-        mavenAuthenticateFeed: false
+        mergeTestResults: true
+        failTaskOnFailedTests: false
+        testRunTitle: 'Unit Tests'
     
     # Publish build artifact
     - task: PublishBuildArtifacts@1
