@@ -71,29 +71,28 @@ stages:
       clean: true
     
     # Setup Java (usar Java instalado no agente)
-    - task: PowerShell@2
+    - task: Bash@3
       displayName: '☕ Verificar Java'
       inputs:
         targetType: 'inline'
-        pwsh: false
         script: |
-          Write-Host "Verificando Java..."
+          echo "Verificando Java..."
           java -version
-          Write-Host "JAVA_HOME: $env:JAVA_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
     
     # Build with Maven Wrapper (não precisa instalar Maven!)
-    - task: PowerShell@2
+    - task: Bash@3
       displayName: '🔨 Maven: Clean and Build'
       inputs:
         targetType: 'inline'
-        pwsh: false
         script: |
-          Write-Host "Building with Maven Wrapper..."
-          .\mvnw.cmd clean package -DskipTests=false
+          echo "Building with Maven Wrapper..."
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests=false
           
-          Write-Host ""
-          Write-Host "✓ Build completed!"
-          Write-Host "Artifact location: target\"
+          echo ""
+          echo "✓ Build completed!"
+          echo "Artifact location: target/"
     
     # Publish test results
     - task: PublishTestResults@2
@@ -126,58 +125,55 @@ stages:
           latest
     
     # ACR: Login com credenciais
-    - task: PowerShell@2
+    - task: Bash@3
       displayName: '🔐 ACR: Docker Login'
       inputs:
         targetType: 'inline'
-        pwsh: false
         script: |
-          Write-Host "Fazendo login no ACR: $(acrLoginServer)"
+          echo "Fazendo login no ACR: $(acrLoginServer)"
           # Usando credenciais do ACR (configure acrUsername e acrPassword como variáveis)
-          if ($env:ACR_PASSWORD) {
-            echo $env:ACR_PASSWORD | docker login $(acrLoginServer) --username $(acrName) --password-stdin
-            Write-Host "✓ Login realizado com sucesso!"
-          } else {
-            Write-Host "⚠ ACR_PASSWORD não configurada. Configure as variáveis:"
-            Write-Host "  - acrUsername: $(acrName)"
-            Write-Host "  - acrPassword: <obtenha com: az acr credential show --name $(acrName)>"
-            Write-Host ""
-            Write-Host "Tentando continuar sem login explícito..."
-          }
+          if [ -n "$ACR_PASSWORD" ]; then
+            echo "$ACR_PASSWORD" | docker login $(acrLoginServer) --username $(acrName) --password-stdin
+            echo "✓ Login realizado com sucesso!"
+          else
+            echo "⚠ ACR_PASSWORD não configurada. Configure as variáveis:"
+            echo "  - acrUsername: $(acrName)"
+            echo "  - acrPassword: <obtenha com: az acr credential show --name $(acrName)>"
+            echo ""
+            echo "Tentando continuar sem login explícito..."
+          fi
       env:
         ACR_PASSWORD: $(acrPassword)
     
     # Docker: Tag for ACR
-    - task: PowerShell@2
+    - task: Bash@3
       displayName: '🏷️ Docker: Tag Images for ACR'
       inputs:
         targetType: 'inline'
-        pwsh: false
         script: |
-          Write-Host "Tagging images for ACR..."
+          echo "Tagging images for ACR..."
           docker tag $(imageName):$(imageTag) $(acrLoginServer)/$(imageName):$(imageTag)
           docker tag $(imageName):latest $(acrLoginServer)/$(imageName):latest
-          Write-Host "✓ Images tagged"
+          echo "✓ Images tagged"
     
     # Push to ACR
-    - task: PowerShell@2
+    - task: Bash@3
       displayName: '⬆️ ACR: Push Images'
       inputs:
         targetType: 'inline'
-        pwsh: false
         script: |
-          Write-Host "Pushing images to ACR..."
+          echo "Pushing images to ACR..."
           docker push $(acrLoginServer)/$(imageName):$(imageTag)
           docker push $(acrLoginServer)/$(imageName):latest
-          Write-Host "✓ Images pushed successfully!"
-          Write-Host ""
-          Write-Host "=========================================="
-          Write-Host "BUILD SUMMARY"
-          Write-Host "=========================================="
-          Write-Host "Image: $(acrLoginServer)/$(imageName):$(imageTag)"
-          Write-Host "Latest: $(acrLoginServer)/$(imageName):latest"
-          Write-Host "Build ID: $(Build.BuildId)"
-          Write-Host "=========================================="
+          echo "✓ Images pushed successfully!"
+          echo ""
+          echo "=========================================="
+          echo "BUILD SUMMARY"
+          echo "=========================================="
+          echo "Image: $(acrLoginServer)/$(imageName):$(imageTag)"
+          echo "Latest: $(acrLoginServer)/$(imageName):latest"
+          echo "Build ID: $(Build.BuildId)"
+          echo "=========================================="
 
 # =============================================================================
 # STAGE 2: DEPLOY (CD) - COMENTADO
