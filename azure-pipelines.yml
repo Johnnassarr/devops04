@@ -30,7 +30,7 @@ variables:
   
   # Azure Service Connection (IMPORTANTE: Configure este valor!)
   # Opção 1: Descomente a linha abaixo e coloque o nome da sua service connection
-  # azureServiceConnection: 'azure-mottu-connection'
+  azureServiceConnection: '2b4ef3b2-0971-4f1b-89e4-d7bdb1ac7b55'
   # Opção 2: Configure como variável do pipeline no Azure DevOps
   
   # Azure variables (configure in Pipeline Variables or Variable Groups)
