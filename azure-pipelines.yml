@@ -28,6 +28,11 @@ variables:
   mavenVersion: '3.8.x'
   jdkVersion: '17'
   
+  # Azure Service Connection (IMPORTANTE: Configure este valor!)
+  # Opção 1: Descomente a linha abaixo e coloque o nome da sua service connection
+  # azureServiceConnection: 'azure-mottu-connection'
+  # Opção 2: Configure como variável do pipeline no Azure DevOps
+  
   # Azure variables (configure in Pipeline Variables or Variable Groups)
   azureRG: 'rg-challenge3-rm556221'
   acrName: 'acrchallenge3rm556221'
@@ -38,8 +43,8 @@ variables:
   imageName: 'mottu-api'
   imageTag: '$(Build.BuildId)'
   
-  # Database variables (configure as secret variables)
-  # dbHost: '<configured-in-variables>'
+  # Database variables (IMPORTANTE: Configure estas variáveis no Azure DevOps!)
+  # dbHost: '<IP-do-banco-obtido-no-setup>'
   # dbPort: '5432'
   # dbName: 'mottu-api'
   # dbUser: 'postgres'
