@@ -71,7 +71,7 @@ stages:
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean package'
-        options: '-DskipTests=false'
+        options: '-D"spring.profiles.active=test"'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
         mavenVersionOption: 'Default'
