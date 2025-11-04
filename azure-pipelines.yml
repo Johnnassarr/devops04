@@ -75,6 +75,7 @@ stages:
       displayName: '☕ Verificar Java'
       inputs:
         targetType: 'inline'
+        pwsh: false
         script: |
           Write-Host "Verificando Java..."
           java -version
@@ -85,6 +86,7 @@ stages:
       displayName: '🔨 Maven: Clean and Build'
       inputs:
         targetType: 'inline'
+        pwsh: false
         script: |
           Write-Host "Building with Maven Wrapper..."
           .\mvnw.cmd clean package -DskipTests=false
@@ -128,6 +130,7 @@ stages:
       displayName: '🔐 ACR: Docker Login'
       inputs:
         targetType: 'inline'
+        pwsh: false
         script: |
           Write-Host "Fazendo login no ACR: $(acrLoginServer)"
           # Usando credenciais do ACR (configure acrUsername e acrPassword como variáveis)
@@ -149,6 +152,7 @@ stages:
       displayName: '🏷️ Docker: Tag Images for ACR'
       inputs:
         targetType: 'inline'
+        pwsh: false
         script: |
           Write-Host "Tagging images for ACR..."
           docker tag $(imageName):$(imageTag) $(acrLoginServer)/$(imageName):$(imageTag)
@@ -160,6 +164,7 @@ stages:
       displayName: '⬆️ ACR: Push Images'
       inputs:
         targetType: 'inline'
+        pwsh: false
         script: |
           Write-Host "Pushing images to ACR..."
           docker push $(acrLoginServer)/$(imageName):$(imageTag)
