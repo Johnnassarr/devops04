@@ -63,7 +63,8 @@ stages:
     displayName: 'Build Application'
     pool:
       name: self-hosted-pool
-    container: maven:3.9-eclipse-temurin-17
+    # NOTA: Este job precisa de Java 17 e Docker instalados no agente
+    # Para instalar Java no Ubuntu: sudo apt install openjdk-17-jdk -y
     
     steps:
     # Checkout code
@@ -71,29 +72,49 @@ stages:
       displayName: '📥 Checkout Repository'
       clean: true
     
-    # Setup Java (verificar se Java está disponível no container)
+    # Instalar Java se não estiver instalado (somente para Ubuntu/Debian)
     - task: Bash@3
-      displayName: '☕ Verificar Java'
+      displayName: '☕ Instalar/Verificar Java 17'
       inputs:
         targetType: 'inline'
         script: |
-          echo "Verificando Java no container..."
-          java -version
-          echo "Maven version:"
-          mvn -version
-          echo "JAVA_HOME: $JAVA_HOME"
+          echo "Verificando Java..."
+          
+          if command -v java &> /dev/null; then
+            echo "Java já está instalado:"
+            java -version
+          else
+            echo "Java não encontrado. Instalando OpenJDK 17..."
+            sudo apt update
+            sudo apt install -y openjdk-17-jdk
+            echo "Java instalado com sucesso:"
+            java -version
+          fi
+          
+          # Configurar JAVA_HOME se não estiver definido
+          if [ -z "$JAVA_HOME" ]; then
+            export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+            echo "JAVA_HOME set to: $JAVA_HOME"
+          fi
     
-    # Build with Maven (container já tem Maven instalado!)
+    # Build with Maven Wrapper
     - task: Bash@3
       displayName: '🔨 Maven: Clean and Build'
       inputs:
         targetType: 'inline'
         script: |
-          echo "Building with Maven..."
+          echo "Building with Maven Wrapper..."
           echo "Working directory: $(pwd)"
           
-          # Build com Maven
-          mvn clean package -DskipTests=false
+          # Configurar JAVA_HOME
+          export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+          echo "JAVA_HOME: $JAVA_HOME"
+          
+          # Dar permissão ao Maven Wrapper
+          chmod +x mvnw
+          
+          # Build com Maven Wrapper
+          ./mvnw clean package -DskipTests=false
           
           echo ""
           echo "✓ Build completed!"
