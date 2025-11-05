@@ -176,23 +176,15 @@ stages:
           echo "Fazendo login no ACR: $(acrLoginServer)"
           echo "Username: $(acrName)"
           
-          # Verificar se a senha está configurada
+          # Verificar se a senha está configurada (via variável secreta)
           if [ -z "$ACR_PASSWORD" ]; then
             echo ""
             echo "❌ ERRO: Variável 'acrPassword' não está configurada!"
-            echo ""
-            echo "📋 Para configurar:"
-            echo "  1. Acesse: Azure DevOps → Pipelines → Seu Pipeline → Edit"
-            echo "  2. Clique em ⋯ (três pontinhos) → Variables"
-            echo "  3. Adicione: acrPassword (marque como SECRET 🔒)"
-            echo "  4. Valor: obtenha com: az acr credential show --name $(acrName)"
-            echo ""
-            echo "💡 Ou execute: az acr credential show --name $(acrName) --query passwords[0].value -o tsv"
+            echo "Configure como variável SECRET no Azure DevOps"
             echo ""
             exit 1
           fi
           
-          # Debug: verificar tamanho da senha (sem mostrar o valor)
           echo "Senha configurada: SIM (tamanho: ${#ACR_PASSWORD} caracteres)"
           
           # Fazer login no ACR
@@ -209,14 +201,6 @@ stages:
             echo ""
             echo "❌ ERRO: Falha ao fazer login no ACR!"
             echo "Exit code do docker login: $LOGIN_STATUS"
-            echo ""
-            echo "🔍 Possíveis causas:"
-            echo "  1. Senha incorreta ou com espaços extras"
-            echo "  2. Username incorreto (deveria ser: $(acrName))"
-            echo "  3. ACR não está acessível"
-            echo ""
-            echo "💡 Solução: Reconfigure a variável 'acrPassword' no Azure DevOps"
-            echo "   Valor correto: obtenha com 'az acr credential show --name $(acrName)'"
             echo ""
             exit 1
           fi
