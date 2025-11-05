@@ -173,17 +173,30 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+          set -e  # Fail on any error
+          
           echo "Fazendo login no ACR: $(acrLoginServer)"
-          # Usando credenciais do ACR (configure acrUsername e acrPassword como variáveis)
-          if [ -n "$ACR_PASSWORD" ]; then
-            echo "$ACR_PASSWORD" | docker login $(acrLoginServer) --username $(acrName) --password-stdin
+          
+          # Verificar se credenciais estão configuradas
+          if [ -z "$ACR_PASSWORD" ]; then
+            echo "❌ ERRO: acrPassword não configurada!"
+            echo ""
+            echo "Configure a variável no Azure DevOps:"
+            echo "  1. Vá em Pipelines > Edit > Variables"
+            echo "  2. Adicione: acrPassword (marque como SECRET)"
+            echo "  3. Obtenha a senha com: az acr credential show --name $(acrName)"
+            exit 1
+          fi
+          
+          # Tentar login
+          echo "$ACR_PASSWORD" | docker login $(acrLoginServer) --username $(acrName) --password-stdin
+          
+          if [ $? -eq 0 ]; then
             echo "✓ Login realizado com sucesso!"
           else
-            echo "⚠ ACR_PASSWORD não configurada. Configure as variáveis:"
-            echo "  - acrUsername: $(acrName)"
-            echo "  - acrPassword: <obtenha com: az acr credential show --name $(acrName)>"
-            echo ""
-            echo "Tentando continuar sem login explícito..."
+            echo "❌ ERRO: Falha ao fazer login no ACR"
+            echo "Verifique se o ACR existe: $(acrLoginServer)"
+            exit 1
           fi
       env:
         ACR_PASSWORD: $(acrPassword)
@@ -205,9 +218,21 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+          set -e  # Fail on any error
+          
           echo "Pushing images to ACR..."
+          echo "Target: $(acrLoginServer)/$(imageName)"
+          echo ""
+          
+          # Push build-specific tag
+          echo "Pushing tag: $(imageTag)..."
           docker push $(acrLoginServer)/$(imageName):$(imageTag)
+          
+          # Push latest tag
+          echo "Pushing tag: latest..."
           docker push $(acrLoginServer)/$(imageName):latest
+          
+          echo ""
           echo "✓ Images pushed successfully!"
           echo ""
           echo "=========================================="
