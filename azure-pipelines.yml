@@ -174,16 +174,35 @@ stages:
         targetType: 'inline'
         script: |
           echo "Fazendo login no ACR: $(acrLoginServer)"
-          # Usando credenciais do ACR (configure acrUsername e acrPassword como variáveis)
-          if [ -n "$ACR_PASSWORD" ]; then
-            echo "$ACR_PASSWORD" | docker login $(acrLoginServer) --username $(acrName) --password-stdin
-            echo "✓ Login realizado com sucesso!"
-          else
-            echo "⚠ ACR_PASSWORD não configurada. Configure as variáveis:"
-            echo "  - acrUsername: $(acrName)"
-            echo "  - acrPassword: <obtenha com: az acr credential show --name $(acrName)>"
+          
+          # Verificar se a senha está configurada
+          if [ -z "$ACR_PASSWORD" ]; then
             echo ""
-            echo "Tentando continuar sem login explícito..."
+            echo "❌ ERRO: Variável 'acrPassword' não está configurada!"
+            echo ""
+            echo "📋 Para configurar:"
+            echo "  1. Acesse: Azure DevOps → Pipelines → Seu Pipeline → Edit"
+            echo "  2. Clique em ⋯ (três pontinhos) → Variables"
+            echo "  3. Adicione: acrPassword (marque como SECRET 🔒)"
+            echo "  4. Valor: obtenha com: az acr credential show --name $(acrName)"
+            echo ""
+            echo "💡 Ou execute: az acr credential show --name $(acrName) --query passwords[0].value -o tsv"
+            echo ""
+            exit 1
+          fi
+          
+          # Fazer login no ACR
+          echo "$ACR_PASSWORD" | docker login $(acrLoginServer) --username $(acrName) --password-stdin
+          
+          if [ $? -eq 0 ]; then
+            echo ""
+            echo "✅ Login realizado com sucesso no ACR!"
+            echo ""
+          else
+            echo ""
+            echo "❌ ERRO: Falha ao fazer login no ACR!"
+            echo ""
+            exit 1
           fi
       env:
         ACR_PASSWORD: $(acrPassword)
