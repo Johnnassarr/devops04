@@ -62,7 +62,9 @@ stages:
   - job: BuildJob
     displayName: 'Build Application'
     pool:
-      name: self-hosted-pool
+      vmImage: 'ubuntu-latest'
+      # NOTA: Trocar para Microsoft-hosted agent temporariamente
+      # Para voltar ao self-hosted, use: name: self-hosted-pool
     # NOTA: Este job precisa de Java 17 e Docker instalados no agente
     # Para instalar Java no Ubuntu: sudo apt install openjdk-17-jdk -y
     
