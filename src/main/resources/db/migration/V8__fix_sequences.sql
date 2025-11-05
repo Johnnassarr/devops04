@@ -1,20 +1,37 @@
--- Corrigir sequences após inserção manual de IDs
+-- V8__fix_sequences.sql
+-- Corrige as sequences do PostgreSQL após inserções com IDs fixos
+-- Atualiza apenas se a tabela tiver registros
 
--- Atualizar sequence de roles
-SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles), true);
+DO $$
+BEGIN
+    -- Corrigir sequence de galpoes
+    IF EXISTS (SELECT 1 FROM galpoes) THEN
+        PERFORM setval('galpoes_id_seq', (SELECT COALESCE(MAX(id), 1) FROM galpoes), true);
+    END IF;
 
--- Atualizar sequence de usuarios
-SELECT setval('usuarios_id_seq', (SELECT MAX(id) FROM usuarios), true);
+    -- Corrigir sequence de motoqueiros
+    IF EXISTS (SELECT 1 FROM motoqueiros) THEN
+        PERFORM setval('motoqueiros_id_seq', (SELECT COALESCE(MAX(id), 1) FROM motoqueiros), true);
+    END IF;
 
--- Atualizar sequence de galpoes
-SELECT setval('galpoes_id_seq', (SELECT MAX(id) FROM galpoes), true);
+    -- Corrigir sequence de manutencao
+    IF EXISTS (SELECT 1 FROM manutencao) THEN
+        PERFORM setval('manutencao_id_seq', (SELECT COALESCE(MAX(id), 1) FROM manutencao), true);
+    END IF;
 
--- Atualizar sequence de motoqueiros
-SELECT setval('motoqueiros_id_seq', (SELECT MAX(id) FROM motoqueiros), true);
+    -- Corrigir sequence de roles
+    IF EXISTS (SELECT 1 FROM roles) THEN
+        PERFORM setval('roles_id_seq', (SELECT COALESCE(MAX(id), 1) FROM roles), true);
+    END IF;
 
--- Atualizar sequence de manutencao
-SELECT setval('manutencao_id_seq', (SELECT MAX(id) FROM manutencao), true);
+    -- Corrigir sequence de usuarios
+    IF EXISTS (SELECT 1 FROM usuarios) THEN
+        PERFORM setval('usuarios_id_seq', (SELECT COALESCE(MAX(id), 1) FROM usuarios), true);
+    END IF;
 
--- Atualizar sequence de motos
-SELECT setval('motos_id_seq', (SELECT MAX(id) FROM motos), true);
+    -- Corrigir sequence de motos
+    IF EXISTS (SELECT 1 FROM motos) THEN
+        PERFORM setval('motos_id_seq', (SELECT COALESCE(MAX(id), 1) FROM motos), true);
+    END IF;
+END $$;
 
