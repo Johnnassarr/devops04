@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,10 +41,11 @@ public class ManutencaoThymeleafController {
     // FORMULÁRIO ADICIONAR (somente ADMIN)
     @GetMapping("/adicionar")
     public String mostrarFormularioAdicionar(Model model,
-                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                             @AuthenticationPrincipal CustomUserDetails userDetails,
+                                             RedirectAttributes redirectAttributes) {
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            model.addAttribute("mensagemErro", "Apenas administradores podem adicionar manutenções.");
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem adicionar manutenções.");
             return "redirect:/manutencoes-view/todos";
         }
 
@@ -56,22 +58,24 @@ public class ManutencaoThymeleafController {
     public String adicionarManutencao(@AuthenticationPrincipal CustomUserDetails userDetails,
                                       @Valid ManutencaoDTO dto,
                                       BindingResult bindingResult,
-                                      Model model) {
+                                      Model model,
+                                      RedirectAttributes redirectAttributes) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            model.addAttribute("mensagemErro", "Apenas administradores podem adicionar manutenções.");
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem adicionar manutenções.");
             return "redirect:/manutencoes-view/todos";
         }
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("mensagemErro", "❌ Por favor, corrija os erros no formulário.");
             model.addAttribute("manutencaoDTO", dto);
             return "manutencao/adicionar";
         }
 
         String mensagem = validarDatas(dto);
         if (!mensagem.isEmpty()) {
-            model.addAttribute("mensagem", mensagem);
+            model.addAttribute("mensagemErro", "❌ " + mensagem);
             model.addAttribute("manutencaoDTO", dto);
             return "manutencao/adicionar";
         }
@@ -82,6 +86,7 @@ public class ManutencaoThymeleafController {
 
         dto.setId(null);
         manutencaoService.salvar(dto);
+        redirectAttributes.addFlashAttribute("mensagemSucesso", "✅ Manutenção adicionada com sucesso!");
         return "redirect:/manutencoes-view/todos";
     }
 
@@ -89,19 +94,23 @@ public class ManutencaoThymeleafController {
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Long id,
                                           Model model,
-                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                          @AuthenticationPrincipal CustomUserDetails userDetails,
+                                          RedirectAttributes redirectAttributes) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            model.addAttribute("mensagemErro", "Apenas administradores podem editar manutenções.");
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem editar manutenções.");
             return "redirect:/manutencoes-view/todos";
         }
 
-        Manutencao manutencao = manutencaoService.buscarPorId(id)
-                .orElseThrow(() -> new IllegalArgumentException("Manutenção não encontrada"));
+        Optional<Manutencao> manutencaoOpt = manutencaoService.buscarPorId(id);
+        if (manutencaoOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Manutenção não encontrada.");
+            return "redirect:/manutencoes-view/todos";
+        }
 
         ManutencaoDTO dto = new ManutencaoDTO();
-        BeanUtils.copyProperties(manutencao, dto);
+        BeanUtils.copyProperties(manutencaoOpt.get(), dto);
         model.addAttribute("manutencaoDTO", dto);
         model.addAttribute("manutencaoId", id);
 
@@ -114,22 +123,24 @@ public class ManutencaoThymeleafController {
                                    @Valid ManutencaoDTO dto,
                                    BindingResult bindingResult,
                                    Model model,
-                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                   @AuthenticationPrincipal CustomUserDetails userDetails,
+                                   RedirectAttributes redirectAttributes) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            model.addAttribute("mensagemErro", "Apenas administradores podem editar manutenções.");
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem editar manutenções.");
             return "redirect:/manutencoes-view/todos";
         }
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("mensagemErro", "❌ Por favor, corrija os erros no formulário.");
             model.addAttribute("manutencaoDTO", dto);
             return "manutencao/editar";
         }
 
         String mensagem = validarDatas(dto);
         if (!mensagem.isEmpty()) {
-            model.addAttribute("mensagem", mensagem);
+            model.addAttribute("mensagemErro", "❌ " + mensagem);
             model.addAttribute("manutencaoDTO", dto);
             return "manutencao/editar";
         }
@@ -140,11 +151,12 @@ public class ManutencaoThymeleafController {
 
         Optional<Manutencao> manutencaoAtualizada = manutencaoService.atualizar(id, dto);
         if (manutencaoAtualizada.isEmpty()) {
-            model.addAttribute("mensagemErro", "Manutenção não encontrada para atualização.");
+            model.addAttribute("mensagemErro", "❌ Manutenção não encontrada para atualização.");
             model.addAttribute("manutencaoDTO", dto);
             return "manutencao/editar";
         }
 
+        redirectAttributes.addFlashAttribute("mensagemSucesso", "✅ Manutenção editada com sucesso!");
         return "redirect:/manutencoes-view/todos";
     }
 
@@ -152,18 +164,22 @@ public class ManutencaoThymeleafController {
     @GetMapping("/excluir/{id}")
     public String mostrarFormularioExcluir(@PathVariable Long id,
                                            Model model,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                           @AuthenticationPrincipal CustomUserDetails userDetails,
+                                           RedirectAttributes redirectAttributes) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            model.addAttribute("mensagemErro", "Apenas administradores podem excluir manutenções.");
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem excluir manutenções.");
             return "redirect:/manutencoes-view/todos";
         }
 
-        Manutencao manutencao = manutencaoService.buscarPorId(id)
-                .orElseThrow(() -> new IllegalArgumentException("Manutenção não encontrada"));
-        model.addAttribute("manutencao", manutencao);
+        Optional<Manutencao> manutencaoOpt = manutencaoService.buscarPorId(id);
+        if (manutencaoOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Manutenção não encontrada.");
+            return "redirect:/manutencoes-view/todos";
+        }
 
+        model.addAttribute("manutencao", manutencaoOpt.get());
         return "manutencao/excluir";
     }
 
@@ -171,15 +187,17 @@ public class ManutencaoThymeleafController {
     @PostMapping("/excluir/{id}")
     public String excluirManutencao(@PathVariable Long id,
                                     @AuthenticationPrincipal CustomUserDetails userDetails,
-                                    Model model) {
+                                    Model model,
+                                    RedirectAttributes redirectAttributes) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            model.addAttribute("mensagemErro", "Apenas administradores podem excluir manutenções.");
+            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem excluir manutenções.");
             return "redirect:/manutencoes-view/todos";
         }
 
         manutencaoService.deletar(id);
+        redirectAttributes.addFlashAttribute("mensagemSucesso", "✅ Manutenção excluída com sucesso!");
         return "redirect:/manutencoes-view/todos";
     }
 
