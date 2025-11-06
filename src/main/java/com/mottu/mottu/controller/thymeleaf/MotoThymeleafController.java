@@ -15,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,11 +48,10 @@ public class MotoThymeleafController {
     // FORMULÁRIO ADICIONAR (só ADMIN pode submeter POST; aqui só mostramos o form)
     @GetMapping("/adicionar")
     public String mostrarFormularioAdicionar(Model model,
-                                             @AuthenticationPrincipal CustomUserDetails userDetails,
-                                             RedirectAttributes redirectAttributes) {
+                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem adicionar motos.");
+            model.addAttribute("mensagemErro", "Apenas administradores podem adicionar motos.");
             return "redirect:/motos-view/todos";
         }
 
@@ -66,20 +64,18 @@ public class MotoThymeleafController {
     @PostMapping("/adicionar")
     public String adicionarMoto(@AuthenticationPrincipal CustomUserDetails userDetails,
                                 @Valid MotoDTO dto,
-                                Model model,
-                                RedirectAttributes redirectAttributes) {
+                                Model model) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem adicionar motos.");
+            model.addAttribute("mensagemErro", "Apenas administradores podem adicionar motos.");
             return "redirect:/motos-view/todos";
         }
 
         try {
             motoService.salvar(dto);
-            redirectAttributes.addFlashAttribute("mensagemSucesso", "✅ Moto adicionada com sucesso!");
         } catch (Exception e) {
-            model.addAttribute("mensagemErro", "❌ " + e.getMessage());
+            model.addAttribute("mensagemErro", e.getMessage());
             model.addAttribute("motoDTO", dto);
             popularCombos(model);
             return "moto/adicionar";
@@ -92,18 +88,17 @@ public class MotoThymeleafController {
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Long id,
                                           Model model,
-                                          @AuthenticationPrincipal CustomUserDetails userDetails,
-                                          RedirectAttributes redirectAttributes) {
+                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem editar motos.");
+            model.addAttribute("mensagemErro", "Apenas administradores podem editar motos.");
             return "redirect:/motos-view/todos";
         }
 
         Optional<Moto> motoOpt = motoService.buscarPorId(id);
         if (motoOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Moto não encontrada.");
+            model.addAttribute("mensagemErro", "Moto não encontrada.");
             return "redirect:/motos-view/todos";
         }
 
@@ -124,20 +119,18 @@ public class MotoThymeleafController {
     public String editarMoto(@AuthenticationPrincipal CustomUserDetails userDetails,
                              @PathVariable Long id,
                              MotoDTO dto,
-                             Model model,
-                             RedirectAttributes redirectAttributes) {
+                             Model model) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem editar motos.");
+            model.addAttribute("mensagemErro", "Apenas administradores podem editar motos.");
             return "redirect:/motos-view/todos";
         }
 
         try {
             motoService.editar(id, dto);
-            redirectAttributes.addFlashAttribute("mensagemSucesso", "✅ Moto editada com sucesso!");
         } catch (Exception e) {
-            model.addAttribute("mensagemErro", "❌ " + e.getMessage());
+            model.addAttribute("mensagemErro", e.getMessage());
             model.addAttribute("motoDTO", dto);
             popularCombos(model);
             return "moto/editar";
@@ -150,18 +143,17 @@ public class MotoThymeleafController {
     @GetMapping("/excluir/{id}")
     public String mostrarFormularioExcluir(@PathVariable Long id,
                                            Model model,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails,
-                                           RedirectAttributes redirectAttributes) {
+                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem excluir motos.");
+            model.addAttribute("mensagemErro", "Apenas administradores podem excluir motos.");
             return "redirect:/motos-view/todos";
         }
 
         Optional<Moto> motoOpt = motoService.buscarPorId(id);
         if (motoOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Moto não encontrada.");
+            model.addAttribute("mensagemErro", "Moto não encontrada.");
             return "redirect:/motos-view/todos";
         }
 
@@ -173,21 +165,19 @@ public class MotoThymeleafController {
     @PostMapping("/excluir/{id}")
     public String excluirMoto(@AuthenticationPrincipal CustomUserDetails userDetails,
                               @PathVariable Long id,
-                              Model model,
-                              RedirectAttributes redirectAttributes) {
+                              Model model) {
 
         Usuario usuario = userDetails.getUsuario();
         if (!usuario.getRole().getNome().equals(RoleName.ADMIN)) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "❌ Apenas administradores podem excluir motos.");
+            model.addAttribute("mensagemErro", "Apenas administradores podem excluir motos.");
             return "redirect:/motos-view/todos";
         }
 
         try {
             motoService.excluir(id);
-            redirectAttributes.addFlashAttribute("mensagemSucesso", "✅ Moto excluída com sucesso!");
         } catch (Exception e) {
             motoService.buscarPorId(id).ifPresent(m -> model.addAttribute("moto", m));
-            model.addAttribute("mensagemErro", "❌ " + e.getMessage());
+            model.addAttribute("mensagemErro", e.getMessage());
             return "moto/excluir";
         }
 

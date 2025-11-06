@@ -9,10 +9,7 @@
 <a th:href="@{/dashboard}" class="btn-voltar">Voltar ao dashboard</a>
 <h2>Lista de Motos</h2>
 
-<!-- Mensagens de feedback -->
 <p th:if="${mensagem}" th:text="${mensagem}" class="mensagem"></p>
-<p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}" class="mensagem-sucesso" style="color: #00ff7f; font-weight: bold;"></p>
-<p th:if="${mensagemErro}" th:text="${mensagemErro}" class="mensagem-erro" style="color: #ff4d4d; font-weight: bold;"></p>
 
 <table th:if="${motos}">
     <thead>
