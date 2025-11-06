@@ -26,6 +26,6 @@ VALUES (1, 'Troca de óleo', 'BAIXA', '2025-09-20T08:00:00', '2025-09-21T12:00:0
 INSERT INTO motos (placa, modelo, ano, status, data_saida, data_retorno, motoboy_id, galpao_id, em_manutencao)
 VALUES
 ('ABC-1234', 'MOTTU_POP', 'ANO_2016', 'DISPONIVEL', NULL, NULL, NULL, 1, false),
-('DEF-5678', 'MOTTU_E', 'ANO_2018', 'DISPONIVEL', NULL, NULL, NULL, 2, false),
+('DEF-5678', 'MOTTU_E', 'ANO_2018', 'DISPONIVEL', NULL, NULL, NULL, 2, false),0
 ('XYZ-5678', 'MOTTU_SPORT', 'ANO_2020', 'MANUTENCAO', NULL, NULL, NULL, 2, true),
 ('LMN-9012', 'MOTTU_POP', 'ANO_2018', 'TRANSITO', '2025-09-20T09:00:00', NULL, 1, 1, false);
